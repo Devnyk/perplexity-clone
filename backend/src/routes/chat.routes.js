@@ -1,6 +1,6 @@
 const express = require('express');
 const authMiddleware = require("../middlewares/auth.middleware")
-const validation = require("../middlewares/validation.middleware")
+const validation = require("../middlewares/validaton.middleware")
 const chatController = require("../controllers/chat.controller")
 
 
