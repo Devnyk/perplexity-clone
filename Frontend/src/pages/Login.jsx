@@ -9,6 +9,7 @@ export default function Login() {
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(false)
 
+  // Form validation
   const errors = useMemo(() => {
     const e = {}
     if (!form.email.trim()) e.email = 'Email required'
@@ -41,19 +42,25 @@ export default function Login() {
     setError(null)
     setSuccess(false)
     try {
-      // Simulated network delay
-      await new Promise(r => setTimeout(r, 800))
-      // Fake credential check placeholder
-      if (form.email === 'test@test.com' && form.password === 'test123') {
-        setSuccess(true)
-      } else {
-        throw new Error('Invalid credentials (try test@test.com / test123)')
-      }
+      // ✅ now pointing to backend on port 3000
+      const res = await fetch("http://localhost:3000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include", // important for cookies
+        body: JSON.stringify({ email: form.email, password: form.password })
+      })
+      if (!res.ok) throw new Error("Login failed")
+      setSuccess(true)
     } catch (err) {
-      setError(err.message || 'Login failed')
+      setError(err.message || "Login failed")
     } finally {
       setSubmitting(false)
     }
+  }
+
+  function handleGoogleLogin() {
+    // ✅ backend Google OAuth route on port 3000
+    window.location.href = "http://localhost:3000/api/oauth/google"
   }
 
   return (
@@ -75,46 +82,48 @@ export default function Login() {
                 value={form.email}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                aria-invalid={!!errors.email}
-                aria-describedby={errors.email ? 'err-email' : undefined}
-                autoComplete="username"
               />
             </div>
-            {touched.email && errors.email && <small id="err-email" style={{ color: 'var(--color-danger)' }}>{errors.email}</small>}
+            {touched.email && errors.email && <small style={{ color: 'red' }}>{errors.email}</small>}
           </div>
 
-            <div className="field">
-              <label htmlFor="password">Password</label>
-              <div className="input-shell">
-                <input
-                  id="password"
-                  name="password"
-                  type={form.showPassword ? 'text' : 'password'}
-                  placeholder="••••••"
-                  value={form.password}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  aria-invalid={!!errors.password}
-                  aria-describedby={errors.password ? 'err-password' : undefined}
-                  autoComplete="current-password"
-                />
-                <button type="button" className="password-toggle" onClick={togglePassword} aria-label={form.showPassword ? 'Hide password' : 'Show password'}>
-                  {form.showPassword ? 'Hide' : 'Show'}
-                </button>
-              </div>
-              {touched.password && errors.password && <small id="err-password" style={{ color: 'var(--color-danger)' }}>{errors.password}</small>}
+          <div className="field">
+            <label htmlFor="password">Password</label>
+            <div className="input-shell">
+              <input
+                id="password"
+                name="password"
+                type={form.showPassword ? 'text' : 'password'}
+                placeholder="••••••"
+                value={form.password}
+                onChange={handleChange}
+                onBlur={handleBlur}
+              />
+              <button type="button" className="password-toggle" onClick={togglePassword}>
+                {form.showPassword ? 'Hide' : 'Show'}
+              </button>
             </div>
+            {touched.password && errors.password && <small style={{ color: 'red' }}>{errors.password}</small>}
+          </div>
 
           <div className="actions">
             <button type="submit" className="submit-btn" disabled={!isValid || submitting}>
               {submitting ? 'Signing in…' : 'Sign In'}
             </button>
-            <div className="alt-link">Don't have an account? <Link to="/register">Create one</Link></div>
-            {error && <div style={{ color: 'var(--color-danger)', fontSize: 'var(--font-size-sm)' }}>{error}</div>}
-            {success && <div style={{ color: 'var(--color-primary)', fontSize: 'var(--font-size-sm)' }}>Login successful!</div>}
+
+            {/* 🔹 Google Login Button */}
+            <button type="button" className="google-btn" onClick={handleGoogleLogin}>
+              <img src="/google-icon.svg" alt="Google" style={{ width: "18px", marginRight: "8px" }} />
+              Sign in with Google
+            </button>
+
+            <div className="alt-link">
+              Don't have an account? <Link to="/register">Create one</Link>
+            </div>
+            {error && <div style={{ color: 'red' }}>{error}</div>}
+            {success && <div style={{ color: 'green' }}>Login successful!</div>}
           </div>
         </form>
-        <footer className="login-footer">© {new Date().getFullYear()} Your Company. All rights reserved.</footer>
       </div>
     </div>
   )
